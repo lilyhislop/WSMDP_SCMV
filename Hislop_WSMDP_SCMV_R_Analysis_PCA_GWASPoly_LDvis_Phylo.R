@@ -12,21 +12,21 @@
 #begin by establishing a new fresh work space
 rm(list=ls())
 
+
 #load in the libraries
 library(GWASpoly) # imported with a .zip file. #for GWASPoly
 library(tidyverse) #For manipulating and renaming dataframes
 library(data.table) #for the LD Visualization and datatable wrangling
-library("scrime")#for recodeSNPS
-library(lme4)#for linear modeling
+library(scrime)#for recodeSNPS
 library(ggtree)#for phylo tree
 library(summarytools)
 # library(gdsfmt)
 library(SNPRelate) #For PCA and Visualizations
-library("compiler") #needed to make GAPIT work
-source("http://zzlab.net/GAPIT/gapit_functions.txt")
-source("http://zzlab.net/FarmCPU/FarmCPU_functions.txt")
-library("bigmemory") #to make a matrix big
-library(rrBLUP)
+# library("compiler") #needed to make GAPIT work
+# source("http://zzlab.net/GAPIT/gapit_functions.txt")
+# source("http://zzlab.net/FarmCPU/FarmCPU_functions.txt")
+# library("bigmemory") #to make a matrix big
+# library(rrBLUP)
 
 #establish the working directory
 setwd("C:/Users/CaptainsScreen/Documents/0 Grad School/0 Lab/Diversity Panel/SCMV")
