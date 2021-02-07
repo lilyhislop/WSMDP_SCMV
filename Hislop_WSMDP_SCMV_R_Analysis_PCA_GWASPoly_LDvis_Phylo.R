@@ -18,9 +18,9 @@ library(GWASpoly) # imported with a .zip file. #for GWASPoly
 library(tidyverse) #For manipulating and renaming dataframes
 library(data.table) #for the LD Visualization and datatable wrangling
 library(scrime)#for recodeSNPS
-library(ggtree)#for phylo tree
+# library(ggtree)#for phylo tree
 library(summarytools)
-# library(gdsfmt)
+library(gdsfmt)
 library(SNPRelate) #For PCA and Visualizations
 # library("compiler") #needed to make GAPIT work
 # source("http://zzlab.net/GAPIT/gapit_functions.txt")
@@ -29,15 +29,19 @@ library(SNPRelate) #For PCA and Visualizations
 # library(rrBLUP)
 
 #establish the working directory
-setwd("C:/Users/CaptainsScreen/Documents/0 Grad School/0 Lab/Diversity Panel/SCMV")
-source("RCode/PCAFigureCreation.R")
-source("RCode/PhenowithGenoPrep.R")
-source("RCode/hmpToNumeric.R")
-source("RCode/GWASPolyVis.R")
-source("RCode/GWASPolyRunner.R")
-source("RCode/WritePhenoGenotoFile.R")
+setwd("C:/Users/LHislop/Documents/GitHub/WSMDP_SCMV/")
+source("PCAFigureCreation.R")
+source("PhenowithGenoPrep.R")
+source("hmpToNumeric.R")
+source("GWASPolyVis.R")
+source("GWASPolyRunner.R")
+source("WritePhenoGenotoFile.R")
+source("getmedianLDVis.R")
+source("getpercentileLDVis.R")
 
 
+setwd("C:/Users/LHislop/Documents/0 Grad School/0 Lab/Diversity Panel/SCMV/")
+# "C:\Users\LHislop\Documents\0 Grad School\"
 #########################
 ###Phenotype Data Import###
 #########################
@@ -120,6 +124,13 @@ GWASPolyRunner("FullGroup_420lines_PC3_Functioned", "SusceptibilityRating05", ge
 GWASPolyRunner("FullGroup_420lines_PC3_Functioned", "PercentInfectedAllRounds", geno_scmv,filename,adendum,phenoSubsetGeno)
 
 
+#########################
+###Control Analysis###
+#########################
+#how susceptible were the controls? if the controls were totally infected, that means our virus application method was effective
+controls <- read.delim("Data/WSMDP_SCMV_Control_Data_WithUninfectedRates.csv", header = TRUE, sep = ",", dec = ".")
+controls$Bench <- as.factor(controls$Bench)
+controls$Check <- as.factor(controls$Check)
 
 
 
@@ -522,14 +533,7 @@ write.table(endocount,"total_endosperm_types.txt", append = FALSE, sep = ",", de
 # GWASPolyVis(GWASPolyRunVersion, trait, data3)
 # 
 
-#########################
-### rrBlup version ###
-#########################
-GWAS(pheno = phenoAlpha_ss_removes_trait_Only,
-     geno=SCMVPanel_nwithpos,
-     K = NULL,
-     n.PC = 3,
-     min.MAF = 0.025)
+
 
 # #########################
 # ### Linear Model ###
@@ -593,44 +597,7 @@ GWAS(pheno = phenoAlpha_ss_removes_trait_Only,
 #########################
 ### LD Visualization ###
 #########################
-#this is a funtion to calculate what proportion of the compared snps at a given distance apart are in what LD
-get.percentiles=function(x, probs=0.95, log_transform=log_transform, numbins=numbins, removefirst500 = removefirst500){
-  # 	cat("Numbins is",numbins,"and range of distances is",range(x$dist),"\n")
-  mydists = x$dist
-  if(removefirst500 == TRUE){
-    x <- x[-which(mydists < 501),]
-    mydists <- mydists[-which(mydists < 501)]}
-  if(log_transform == TRUE){
-    is_negative = mydists<0 & !is.na(mydists)
-    mydists = abs(mydists)	# Have to abs-value b/c log doesn"t do negatives
-    print(range(mydists))
-    mydists[mydists==0]=1 # To avoid problems with log-transforming 0-values
-    mydists = log10(mydists)	
-    mydists[is_negative] = mydists[is_negative] * -1	# Restore to negative to indicate is before the gene
-  }
-  results=as.list(tapply(X=x$rsq, INDEX=cut(mydists, breaks=numbins), FUN=quantile, na.rm=T, probs=probs))
-  results=do.call(what=rbind, args=results)
-  return(results)
-}
 
-#this is a funtion to calculate what's the median LD the compared SNPS
-get.median=function(x, probs=5, log_transform=log_transform, numbins=numbins, removefirst500 = removefirst500){
-  mydists = x$dist
-  if(removefirst500 == TRUE){
-    x <- x[-which(mydists < 501),]
-    mydists <- mydists[-which(mydists < 501)]}
-  if(log_transform == TRUE){
-    is_negative = mydists<0 & !is.na(mydists) 
-    mydists = abs(mydists)	# Have to abs-value b/c log doesn"t do negatives
-    print(range(mydists))
-    mydists[mydists==0]=1 # To avoid problems with log-transforming 0-values
-    mydists = log10(mydists)	
-    mydists[is_negative] <- mydists[is_negative] * -1	# Restore to negative to indicate is before the gene
-  }
-  results=as.list(tapply(X=x$rsq, INDEX=cut(mydists, breaks=numbins), FUN=median, na.rm=T))
-  results=do.call(what=rbind, args=results)
-  return(results)
-}
 
 #Import the name of the file. This matrix was calculated on Tassel using the Linkage Disequilibrium tool and the output was saved as a text file
   #since the resulting text file was 8GB, it was pruned using AWK on linux to only include the columns for distance and r2
@@ -869,13 +836,3 @@ ggtree(treeSCMV, aes(color=EndospermType), layout = 'circular',
 dev.off()
 
 
-
-#########################
-###Control Analysis###
-#########################
-#how susceptible were the controls? if the controls were totally infected, that means our virus application method was effective
-controls <- read.delim("Data/WSMDP_SCMV_Control_Data_Raw.csv", header = TRUE, sep = ",", dec = ".")
-controls$Bench <- as.factor(controls$Bench)
-controls$Check <- as.factor(controls$Check)
-controls$ratio <- controls$Infected/controls$Stand
-mean(controls$ratio)
