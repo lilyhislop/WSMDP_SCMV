@@ -14,7 +14,9 @@ rm(list=ls())
 
 
 #load in the libraries
-library(GWASpoly) # imported with a .zip file. #for GWASPoly
+library("devtools")
+install_github("jendelman/GWASpoly")
+library(GWASpoly) 
 library(tidyverse) #For manipulating and renaming dataframes
 library(data.table) #for the LD Visualization and datatable wrangling
 library(scrime)#for recodeSNPS
@@ -38,6 +40,7 @@ source("GWASPolyRunner.R")
 source("WritePhenoGenotoFile.R")
 source("getmedianLDVis.R")
 source("getpercentileLDVis.R")
+
 
 
 setwd("C:/Users/LHislop/Documents/0 Grad School/0 Lab/Diversity Panel/SCMV/")
@@ -131,8 +134,10 @@ GWASPolyRunner("FullGroup_420lines_PC3_Functioned", "PercentInfectedAllRounds", 
 controls <- read.delim("Data/WSMDP_SCMV_Control_Data_WithUninfectedRates.csv", header = TRUE, sep = ",", dec = ".")
 controls$Bench <- as.factor(controls$Bench)
 controls$Check <- as.factor(controls$Check)
-
-
+controls$Percent.Infected <- 100-controls$Percent.Uninfected
+png(filename = "Figures/Plot_Controls_infection_histogram.png")
+hist(controls$Percent.Infected, main = "Symptom Percentage Among Controls", xlab = "Percent Sympotmatic")
+dev.off()
 
 #############
 #data visualization
@@ -148,7 +153,7 @@ summary(pheno$PercentInfectedAllRounds)
 dfSummary(pheno)
 freq(pheno)
 descr(pheno)#descr shows that plant height has outlier with kurtosis
-ctable(pheno)
+
 
 plotData <- function(ToPlot, type, ByPlot=NULL){
   png(paste("Figures/Plot_Pheno_",ToPlot,"_",type,".png",sep=""))
@@ -164,42 +169,20 @@ plotData("PercentInfectedAllRounds","hist")
 plotData("SusceptibilityRating05","hist")
 plotData("SusceptibilityRating03","hist")
 plotData("SusceptibilityRating02","hist")
+plotData("StandCountCleaned","hist")
+plotData("PercentInfectedAllRounds","plot","PotLabel")
 
 
-png("Figures/Plot_Susceptible.png")
-barplot(prop.table(table(pheno$Susceptible)), xlab = "Susceptibility Scores",ylab = "Frequency of Occurance",ylim = c(0,1), main = "Susceptibility Scores within Panel")
-dev.off()
-png("Figures/Plot_Suscep_by_Pot.png")
-plot(x =  pheno$PotLabel, y = pheno$Susceptible, main = "Susceptibility by Pot label")
-dev.off()
-png("Figures/Plot_StandCount_Hist.png")
-hist(pheno$StandCountCleaned, main = "Stand Count Freq", xlab = "Stand Count")
-dev.off()
-png("Figures/Plot_Suscep_by_Region.png")
-plot(pheno$Susceptible ~ pheno$Region, main = "Susceptibility by Region of Origin")
-dev.off()
-png("Figures/Plot_Suscep_by_Program.png")
-plot(pheno$Susceptible ~ pheno$Program, main = "Susceptibility by Program of Origin")
-dev.off()
-png("Figures/Plot_Suscep_by_Endo.png")
-plot(pheno$Susceptible ~ pheno$EndospermType, main = "Susceptibility by Endosperm Type")
-dev.off()
-png("Figures/Plot_Endo.png")
-plot(pheno$EndospermType,ylab = "Count", main = "Representation of Endosperm Types in Panel")
-dev.off()
-png("Figures/Plot_Suscp_by_Date.png")
-plot(pheno$Susceptible ~ pheno$DatePlanted, main = "Susceptibility by Planting Date")
-dev.off()
 
 #how many are resistant?
-length(which(pheno$Susceptible == 0)) #47 not susceptible, or 47 resistant
-resistantvar <- pheno$Line[which(pheno$Susceptible == 0 )]
+length(which(pheno$SusceptibilityRating05 == 0)) #46 resistant
+resistantvar <- pheno$Line[which(pheno$SusceptibilityRating05 == 0 )]
 print(resistantvar)
 write.table(resistantvar, "resistant_varieties.txt", append = FALSE, sep = ",", dec = ".",
             row.names = FALSE, col.names = TRUE)
 
-pheno$EndospermType[which(pheno$Susceptible == 0 )]
-resistantendo <- table(pheno$EndospermType[which(pheno$Susceptible == 0)])
+pheno$EndospermType[which(pheno$SusceptibilityRating05 == 0 )]
+resistantendo <- table(pheno$EndospermType[which(pheno$SusceptibilityRating05 == 0)])
 print(resistantendo)
 write.table(resistantendo,"resistant_endosperm_types.txt", append = FALSE, sep = ",", dec = ".",
             row.names = FALSE, col.names = TRUE)
@@ -210,9 +193,57 @@ write.table(endocount,"total_endosperm_types.txt", append = FALSE, sep = ",", de
             row.names = FALSE, col.names = TRUE)
 
 
+#########################
+### Scm1 Analysis ###
+#########################
+##Lets get the genetics out here to be worked on
+SCMVPanel_nwithpos <- hmpToNumeric(geno_scmv)
+
+#figure out what the haplotype is at the SCMV1 gene in IL793a (it has Pa405 as parent)
+SCMVPanel_nwithpos_chr6 <- SCMVPanel_nwithpos[SCMVPanel_nwithpos$Chrom == "6"]
+
+#know the PAV for SCMV1 is around 19.4Mb. Find the closest postion to that
+SCMV1Pos <- as.integer(which(SCMVPanel_nwithpos_chr6$Position == 19369936))
+IL793apos <- as.integer(which(colnames(SCMVPanel_nwithpos_chr6) == "IL793a"))
+SCMV1status <- SCMVPanel_nwithpos_chr6[60,183]
+
+#what lines have the same phenotype as IL793a at that point
+withSCMV1pos <- which(SCMVPanel_nwithpos_chr6[60,] == as.integer(SCMV1status))
+withSCMV1names <- colnames(SCMVPanel_nwithpos_chr6)[withSCMV1pos]
+
+#add whether they have SCMV1 to phenotypic dataframe
+pheno$SCMV1 = FALSE
+pheno$SCMV1[pheno$GenoName %in% c(withSCMV1names)]=TRUE
+
+png("Figures/Plot_Pheno_PercentInfected_withSCM1.png")
+hist(pheno$PercentInfectedAllRounds[which(pheno$SCMV1)],main = "Percent Symptomatic of lines with Scm1 Haplotype",xlab = "Percent Plants Sympotmatic")
+dev.off()
+png("Figures/Plot_Pheno_PercentInfected_withoutSCM1.png")
+hist(pheno$PercentInfectedAllRounds[which(!pheno$SCMV1)],main = "Percent Symptomatic of lines without Scm1 Haplotype",xlab = "Percent Plants Sympotmatic")
+dev.off()
+
+
 # #########################
 # ### GWASPoly, Full Group, No removes ###
 # #########################
+
+# dev.off()
+# png("Figures/Plot_Suscep_by_Region.png")
+# plot(pheno$SusceptibilityRating05 ~ pheno$Region, main = "Susceptibility by Region of Origin")
+# dev.off()
+# png("Figures/Plot_Suscep_by_Program.png")
+# plot(pheno$SusceptibilityRating05 ~ pheno$Program, main = "Susceptibility by Program of Origin")
+# dev.off()
+# png("Figures/Plot_Suscep_by_Endo.png")
+# plot(pheno$SusceptibilityRating05 ~ pheno$EndospermType, main = "Susceptibility by Endosperm Type")
+# dev.off()
+# png("Figures/Plot_Endo.png")
+# plot(pheno$EndospermType,ylab = "Count", main = "Representation of Endosperm Types in Panel")
+# dev.off()
+# png("Figures/Plot_Suscp_by_Date.png")
+# plot(pheno$SusceptibilityRating05 ~ pheno$DatePlanted, main = "Susceptibility by Planting Date")
+# dev.off()
+
 # #Start with the full group, nothing removed
 # GWASPolyRunVersion <- "FullGroup_420lines_PC3"
 # 
