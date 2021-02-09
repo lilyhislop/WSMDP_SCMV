@@ -3,7 +3,8 @@ GWASPolyRunner <- function(RunName, trait,geno_scmv,filename,adendum,phenoSubset
   GWASPolyRunVersion <- RunName
 
 #read in hmp data, output numeric format that GWASPoly likes
-SCMVPanel_nwithpos <- hmpToNumeric(geno_scmv)
+if(!is.numeric(geno_scmv[15,30])){
+SCMVPanel_nwithpos <- hmpToNumeric(geno_scmv)}
 outfiles <- WritePhenoGenoToFile(GWASPolyRunVersion,trait,phenoSubsetGeno,SCMVPanel_nwithpos,filename,adendum)
 
 #now we run the GWASpoly with the files in the proper format

@@ -14,13 +14,14 @@ rm(list=ls())
 
 
 #load in the libraries
-library("devtools")
+library("devtools")#for intsalling from github
 install_github("jendelman/GWASpoly")
-library(GWASpoly) 
+library(GWASpoly)#for running Gwas
+library(useful)#for comparing lists
 library(tidyverse) #For manipulating and renaming dataframes
 library(data.table) #for the LD Visualization and datatable wrangling
 library(scrime)#for recodeSNPS
-# library(ggtree)#for phylo tree
+library(ggtree)#for phylo tree
 library(summarytools)
 library(gdsfmt)
 library(SNPRelate) #For PCA and Visualizations
@@ -44,7 +45,6 @@ source("getpercentileLDVis.R")
 
 
 setwd("C:/Users/LHislop/Documents/0 Grad School/0 Lab/Diversity Panel/SCMV/")
-# "C:\Users\LHislop\Documents\0 Grad School\"
 #########################
 ###Phenotype Data Import###
 #########################
@@ -198,18 +198,32 @@ write.table(endocount,"total_endosperm_types.txt", append = FALSE, sep = ",", de
 #########################
 ##Lets get the genetics out here to be worked on
 SCMVPanel_nwithpos <- hmpToNumeric(geno_scmv)
+Scm1OfficialPosition = 24034207
 
 #figure out what the haplotype is at the SCMV1 gene in IL793a (it has Pa405 as parent)
 SCMVPanel_nwithpos_chr6 <- SCMVPanel_nwithpos[SCMVPanel_nwithpos$Chrom == "6"]
+SCMV1Pos <- which(abs(SCMVPanel_nwithpos_chr6$Position - Scm1OfficialPosition)== min(abs(SCMVPanel_nwithpos_chr6$Position - Scm1OfficialPosition)))
+SCMV1haploPos <- c((SCMV1Pos-1):(SCMV1Pos+1))
 
-#know the PAV for SCMV1 is around 19.4Mb. Find the closest postion to that
-SCMV1Pos <- as.integer(which(SCMVPanel_nwithpos_chr6$Position == 19369936))
 IL793apos <- as.integer(which(colnames(SCMVPanel_nwithpos_chr6) == "IL793a"))
-SCMV1status <- SCMVPanel_nwithpos_chr6[60,183]
+SCMV1status <- SCMVPanel_nwithpos_chr6[SCMV1haploPos,..IL793apos]
+
+
+#######this needs to be rubber ducked! how do I compare a list with 3 items to a data frame to find what entries in the data frame have the same problem####
+compare.list(SCMV1status,SCMVPanel_nwithpos_chr6[SCMV1haploPos,])
 
 #what lines have the same phenotype as IL793a at that point
-withSCMV1pos <- which(SCMVPanel_nwithpos_chr6[60,] == as.integer(SCMV1status))
+withSCMV1pos <- which(SCMVPanel_nwithpos_chr6[SCMV1haploPos,] == SCMV1status)
 withSCMV1names <- colnames(SCMVPanel_nwithpos_chr6)[withSCMV1pos]
+SCMVPanel_n_withScm1 <- data.frame(SCMVPanel_nwithpos[,c(1:3)],SCMVPanel_nwithpos[,..withSCMV1pos])
+
+withoutSCMV1pos <- which(SCMVPanel_nwithpos_chr6[60,] != as.integer(SCMV1status))
+withoutSCMV1names <- colnames(SCMVPanel_nwithpos_chr6)[withoutSCMV1pos]
+SCMVPanel_n_withoutScm1 <- data.frame(SCMVPanel_nwithpos[,c(1:3)],SCMVPanel_nwithpos[,..withoutSCMV1pos])
+
+length(withSCMV1pos)
+length(withoutSCMV1pos)
+
 
 #add whether they have SCMV1 to phenotypic dataframe
 pheno$SCMV1 = FALSE
@@ -222,6 +236,8 @@ png("Figures/Plot_Pheno_PercentInfected_withoutSCM1.png")
 hist(pheno$PercentInfectedAllRounds[which(!pheno$SCMV1)],main = "Percent Symptomatic of lines without Scm1 Haplotype",xlab = "Percent Plants Sympotmatic")
 dev.off()
 
+GWASPolyRunner("WithScm1_144lines_PC3_Functioned", "PercentInfectedAllRounds", SCMVPanel_n_withScm1,filename,adendum,phenoSubsetGeno)
+GWASPolyRunner("WithoutScm1_266lines_PC3_Functioned", "PercentInfectedAllRounds", SCMVPanel_n_withoutScm1,filename,adendum,phenoSubsetGeno)
 
 # #########################
 # ### GWASPoly, Full Group, No removes ###
