@@ -198,12 +198,12 @@ write.table(endocount,"total_endosperm_types.txt", append = FALSE, sep = ",", de
 #########################
 ##Lets get the genetics out here to be worked on
 SCMVPanel_nwithpos <- hmpToNumeric(geno_scmv)
-Scm1OfficialPosition = 24034207
+Scm1OfficialPosition = 19987285
 
 #figure out what the haplotype is at the SCMV1 gene in IL793a (it has Pa405 as parent)
 SCMVPanel_nwithpos_chr6 <- SCMVPanel_nwithpos[SCMVPanel_nwithpos$Chrom == "6"]
 SCMV1Pos <- which(abs(SCMVPanel_nwithpos_chr6$Position - Scm1OfficialPosition)== min(abs(SCMVPanel_nwithpos_chr6$Position - Scm1OfficialPosition)))
-SCMV1haploPos <- c((SCMV1Pos-1):(SCMV1Pos+1))
+SCMV1haploPos <- c((SCMV1Pos-2):(SCMV1Pos))
 
 IL793apos <- as.integer(which(colnames(SCMVPanel_nwithpos_chr6) == "IL793a"))
 SCMV1status <- SCMVPanel_nwithpos_chr6[SCMV1haploPos,..IL793apos]
