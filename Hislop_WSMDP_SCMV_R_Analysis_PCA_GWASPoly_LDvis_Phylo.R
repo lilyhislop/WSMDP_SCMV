@@ -216,7 +216,7 @@ SCMVPanel_n_withScm1 <- data.frame(SCMVPanel_nwithpos[,c(1:3)],SCMVPanel_nwithpo
 
 withoutSCMV1pos <- which(as.character(SCMVPanel_nwithpos_chr6[SCMV1haploPos,]) != as.character(SCMV1status))
 withoutSCMV1names <- colnames(SCMVPanel_nwithpos_chr6)[withoutSCMV1pos]
-SCMVPanel_n_withoutScm1 <- data.frame(SCMVPanel_nwithpos[,c(1:3)],SCMVPanel_nwithpos[,..withoutSCMV1pos])
+SCMVPanel_n_withoutScm1 <- data.frame(SCMVPanel_nwithpos[,..withoutSCMV1pos])
 
 length(withSCMV1pos)
 length(withoutSCMV1pos)
@@ -235,6 +235,10 @@ dev.off()
 
 GWASPolyRunner(paste("WithScm1_",length(withSCMV1pos),"lines_PC3_Functioned",sep = ""), "PercentInfectedAllRounds", SCMVPanel_n_withScm1,filename,adendum,phenoSubsetGeno)
 GWASPolyRunner(paste("WithoutScm1_",length(withoutSCMV1pos),"lines_PC3_Functioned",sep = ""), "PercentInfectedAllRounds", SCMVPanel_n_withoutScm1,filename,adendum,phenoSubsetGeno)
+
+#is the percent infected significantly different among those with SCMV and those without?
+t.test(pheno$PercentInfectedAllRounds~pheno$SCMV1)
+
 
 # #########################
 # ### GWASPoly, Full Group, No removes ###
