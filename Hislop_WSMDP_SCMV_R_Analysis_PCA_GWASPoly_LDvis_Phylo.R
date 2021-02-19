@@ -192,7 +192,11 @@ print(endocount)
 write.table(endocount,"total_endosperm_types.txt", append = FALSE, sep = ",", dec = ".",
             row.names = FALSE, col.names = TRUE)
 
-
+#how many resistant lines have genotypic data
+resistantwithGBS <- intersect(which(pheno$PercentInfectedAllRounds == 0),which(pheno$GenoName != ""))
+length(resistantwithGBS)
+resistantwithGBSNames <- pheno$Line[resistantwithGBS]
+resistantwithGBSNames[order(resistantwithGBSNames)]
 #########################
 ### Scm1 Analysis ###
 #########################
@@ -238,6 +242,11 @@ GWASPolyRunner(paste("WithoutScm1_",length(withoutSCMV1pos),"lines_PC3_Functione
 
 #is the percent infected significantly different among those with SCMV and those without?
 t.test(pheno$PercentInfectedAllRounds~pheno$SCMV1)
+
+#how many of the lines that have the scm1 haplotype also have 0% susceptibility
+length(intersect(which(pheno$PercentInfectedAllRounds == "0"), which(pheno$SCMV1)))
+resistantlineswithscm1 <- pheno$Line[intersect(which(pheno$PercentInfectedAllRounds == "0"), which(pheno$SCMV1))]
+resistantlineswithscm1
 
 
 # #########################
