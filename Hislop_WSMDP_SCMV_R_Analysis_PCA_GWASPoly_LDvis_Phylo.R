@@ -136,7 +136,7 @@ controls$Bench <- as.factor(controls$Bench)
 controls$Check <- as.factor(controls$Check)
 controls$Percent.Infected <- 100-controls$Percent.Uninfected
 png(filename = "Figures/Plot_Controls_infection_histogram.png")
-hist(controls$Percent.Infected, main = "Symptom Percentage Among Controls", xlab = "Percent Sympotmatic")
+hist(controls$Percent.Infected, main = "Symptom Percentage Among Control Pots", ylim = c(0,50), xlab = "Percent Sympotmatic", ylab = "Number")
 dev.off()
 
 #############
@@ -159,13 +159,13 @@ plotData <- function(ToPlot, type, title, ByPlot=NULL){
   png(paste("Figures/Plot_Pheno_",ToPlot,"_",type,".png",sep=""))
   if(type == "hist"){
     pheno[,ToPlot]<-as.numeric(pheno[,ToPlot])
-    hist(pheno[,ToPlot],main = title, xlab = ToPlot)
+    hist(pheno[,ToPlot],ylim = c(0,250), main = title, xlab = ToPlot, ylab = "Number")
 }
   if(type == "plot"){plot(pheno[,ToPlot]~pheno[,ByPlot], main = title)}
   dev.off()
 }
 
-plotData("PercentInfectedAllRounds","hist","Percent Symptom Frequency")
+plotData("PercentInfectedAllRounds","hist","Number of Lines by Percent Symptom")
 plotData("SusceptibilityRating05","hist","Susceptibility Ranking 0-5 Frequency")
 plotData("SusceptibilityRating03","hist","Susceptibility Ranked 0-3 Frequency")
 plotData("SusceptibilityRating02","hist","Susceptibility Ranked 0-2 Frequency")
@@ -231,10 +231,10 @@ pheno$SCMV1 = FALSE
 pheno$SCMV1[pheno$GenoName %in% c(withSCMV1names)]=TRUE
 
 png("Figures/Plot_Pheno_PercentInfected_withSCM1.png")
-hist(pheno$PercentInfectedAllRounds[which(pheno$SCMV1)],main = "Percent Symptomatic of lines with Scm1 Haplotype",xlab = "Percent Plants Sympotmatic")
+hist(pheno$PercentInfectedAllRounds[which(pheno$SCMV1)],ylim = c(0,25),main = "Percent Symptomatic of lines with Scm1 Haplotype",ylab = "Number",xlab = "Percent Plants Sympotmatic")
 dev.off()
 png("Figures/Plot_Pheno_PercentInfected_withoutSCM1.png")
-hist(pheno$PercentInfectedAllRounds[which(!pheno$SCMV1)],main = "Percent Symptomatic of lines without Scm1 Haplotype",xlab = "Percent Plants Sympotmatic")
+hist(pheno$PercentInfectedAllRounds[which(!pheno$SCMV1)],ylim = c(0,250),main = "Percent Symptomatic of lines without Scm1 Haplotype",ylab = "Number",xlab = "Percent Plants Sympotmatic")
 dev.off()
 
 GWASPolyRunner(paste("WithScm1_",length(withSCMV1pos),"lines_PC3_Functioned",sep = ""), "PercentInfectedAllRounds", SCMVPanel_n_withScm1,filename,adendum,phenoSubsetGeno)
