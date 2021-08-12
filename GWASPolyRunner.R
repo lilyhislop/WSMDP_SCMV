@@ -17,7 +17,7 @@ data <- read.GWASpoly(ploidy=2,
 data2 <- set.K(data)
 params <- set.params(fixed=NULL, fixed.type=NULL,n.PC = 3, MAF = 0.025) #no fixed effects, MAF should do nothing as it's already been filtered
 
-data3 <- GWASpoly(data2,models=c("additive","general","1-dom-alt","1-dom-ref"),traits=trait, params=params)
+data3 <- GWASpoly(data2,models=c("additive","general"),traits=trait, params=params)
 
 #visualize the gwas results
 GWASPolyVis(GWASPolyRunVersion, trait, data3,filename,adendum)

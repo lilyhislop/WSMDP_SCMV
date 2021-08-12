@@ -1,17 +1,18 @@
 GWASPolyVis <- function(GWASPolyRunVersion,trait,data3,filename,adendum){
-  #look at the QQplots for each tested model
-  QQplotfile <- paste("Figures/GWASpoly/SCMV_GWASPoly_",filename,adendum,GWASPolyRunVersion,"_",trait,"_QQplot.png", sep = "")
-  png(QQplotfile)
-  print({
-    par(mfrow=c(2,3))
-  models <- c("additive","general","1-dom-alt-alt","1-dom-alt-ref","1-dom-ref-alt","1-dom-ref-ref")
-  #ONE TRAIT AT A TIME
-  for (i in 1:6) {
-    qq.plot(data3,trait=trait,model=models[i])
-  }
   
-     })
-  dev.off()
+  #look at the QQplots for each tested model
+  # QQplotfile <- paste("Figures/GWASpoly/SCMV_GWASPoly_",filename,adendum,GWASPolyRunVersion,"_",trait,"_QQplot.png", sep = "")
+  # png(QQplotfile)
+  # print({
+  #   par(mfrow=c(2,3))
+  # models <- c("additive","general","1-dom-alt-alt","1-dom-alt-ref","1-dom-ref-alt","1-dom-ref-ref")
+  # #ONE TRAIT AT A TIME
+  # for (i in 1:6) {
+  #   qq.plot(data3,trait=trait,model=models[i])
+  # }
+  # 
+  #    })
+  # dev.off()
   
   QQplotfile <- paste("Figures/GWASpoly/SCMV_GWASPoly_",filename,adendum,GWASPolyRunVersion,"_",trait,"_QQplot_Additive.png", sep = "")
   png(QQplotfile)
@@ -36,20 +37,20 @@ GWASPolyVis <- function(GWASPolyRunVersion,trait,data3,filename,adendum){
   #Here's the QTLS found
   print(get.QTL(data4))
   
-  #Heres the manhattan plots for this
-  MANplotfile <- paste("Figures/GWASpoly/SCMV_GWASPoly_",filename,adendum,GWASPolyRunVersion,"_",trait,"_Manhattan_AllModels.png", sep = "")
-  png(MANplotfile,width = 750, height = 500)
-  par(mfrow=c(2,3))
-  print({
-  manhattan.plot(data4,trait=trait,model="additive")
-  manhattan.plot(data4,trait=trait,model="general")
-  manhattan.plot(data4,trait=trait,model="1-dom-alt-ref")
-  manhattan.plot(data4,trait=trait,model="1-dom-alt-alt")
-  manhattan.plot(data4,trait=trait,model="1-dom-ref-alt")
-  manhattan.plot(data4,trait=trait,model="1-dom-ref-ref")
-  
-  })
-  dev.off()
+  # #Heres the manhattan plots for this
+  # MANplotfile <- paste("Figures/GWASpoly/SCMV_GWASPoly_",filename,adendum,GWASPolyRunVersion,"_",trait,"_Manhattan_AllModels.png", sep = "")
+  # png(MANplotfile,width = 750, height = 500)
+  # par(mfrow=c(2,3))
+  # print({
+  # manhattan.plot(data4,trait=trait,model="additive")
+  # manhattan.plot(data4,trait=trait,model="general")
+  # manhattan.plot(data4,trait=trait,model="1-dom-alt-ref")
+  # manhattan.plot(data4,trait=trait,model="1-dom-alt-alt")
+  # manhattan.plot(data4,trait=trait,model="1-dom-ref-alt")
+  # manhattan.plot(data4,trait=trait,model="1-dom-ref-ref")
+  # 
+  # })
+  # dev.off()
   
   
   MANGenplotfile <- paste("Figures/GWASpoly/SCMV_GWASPoly_",filename,adendum,GWASPolyRunVersion,"_",trait,"_Manhattan_GeneralModel.png", sep = "")
@@ -57,6 +58,7 @@ GWASPolyVis <- function(GWASPolyRunVersion,trait,data3,filename,adendum){
   print({
   par(mfrow=c(1,1))
   manhattan.plot(data4,trait=trait,model="general")
+
   # abline(a = get.QTL(data4, model="general")$Threshold[1], b = 0, lty = "dashed")
   })
   dev.off()

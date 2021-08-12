@@ -33,6 +33,7 @@ library(SNPRelate) #For PCA and Visualizations
 
 #establish the working directory
 setwd("C:/Users/LHislop/Documents/GitHub/WSMDP_SCMV/")
+source("manhattanPlotLH.R")
 source("PCAFigureCreation.R")
 source("PhenowithGenoPrep.R")
 source("hmpToNumeric.R")
@@ -41,6 +42,7 @@ source("GWASPolyRunner.R")
 source("WritePhenoGenotoFile.R")
 source("getmedianLDVis.R")
 source("getpercentileLDVis.R")
+source("get_x.R")
 
 
 
@@ -121,10 +123,11 @@ str(geno_scmv)
 #########################
 #trait to analyze
 trait <- "SusceptibilityRating02"
-GWASPolyRunner("FullGroup_420lines_PC3_Functioned", trait, geno_scmv,filename,adendum,phenoSubsetGeno)
-GWASPolyRunner("FullGroup_420lines_PC3_Functioned", "SusceptibilityRating03", geno_scmv,filename,adendum,phenoSubsetGeno)
-GWASPolyRunner("FullGroup_420lines_PC3_Functioned", "SusceptibilityRating05", geno_scmv,filename,adendum,phenoSubsetGeno)
-GWASPolyRunner("FullGroup_420lines_PC3_Functioned", "PercentInfectedAllRounds", geno_scmv,filename,adendum,phenoSubsetGeno)
+RunName <- paste0(Sys.Date(),"_FullGroup_420lines_PC3_Functioned")
+GWASPolyRunner(RunName, trait, geno_scmv,filename,adendum,phenoSubsetGeno)
+GWASPolyRunner(RunName, "SusceptibilityRating03", geno_scmv,filename,adendum,phenoSubsetGeno)
+GWASPolyRunner(RunName, "SusceptibilityRating05", geno_scmv,filename,adendum,phenoSubsetGeno)
+GWASPolyRunner(RunName, "PercentInfectedAllRounds", geno_scmv,filename,adendum,phenoSubsetGeno)
 
 
 #########################
@@ -135,8 +138,9 @@ controls <- read.delim("Data/WSMDP_SCMV_Control_Data_WithUninfectedRates.csv", h
 controls$Bench <- as.factor(controls$Bench)
 controls$Check <- as.factor(controls$Check)
 controls$Percent.Infected <- 100-controls$Percent.Uninfected
-png(filename = "Figures/Plot_Controls_infection_histogram.png")
-hist(controls$Percent.Infected, main = "Symptom Percentage Among Control Pots", ylim = c(0,50), xlab = "Percent Sympotmatic", ylab = "Number")
+png(filename = "Figures/Plot_Controls_infection_histogram.png",width = 750, height = 750)
+# hist(controls$Percent.Infected, main = "Symptom Percentage Among Control Pots", ylim = c(0,50), xlab = "Percent Sympotmatic", ylab = "Number")
+hist(controls$Percent.Infected,main = "", ylim = c(0,50), xlab = "Symptomatic plants (%)", ylab = "Plants (no.)")
 dev.off()
 
 #############
@@ -155,21 +159,22 @@ freq(pheno)
 descr(pheno)#descr shows that plant height has outlier with kurtosis
 
 
-plotData <- function(ToPlot, type, title, ByPlot=NULL){
-  png(paste("Figures/Plot_Pheno_",ToPlot,"_",type,".png",sep=""))
+plotData <- function(ToPlot, type, title, xaxisname = ToPlot,  ByPlot=NULL){
+  png(paste("Figures/Plot_Pheno_",ToPlot,"_",type,".png",sep=""),width = 750, height = 750)
   if(type == "hist"){
     pheno[,ToPlot]<-as.numeric(pheno[,ToPlot])
-    hist(pheno[,ToPlot],ylim = c(0,250), main = title, xlab = ToPlot, ylab = "Number")
+    # hist(pheno[,ToPlot],ylim = c(0,250), main = title, xlab = xaxisname, ylab = "Number")
+    hist(pheno[,ToPlot],ylim = c(0,250), main = "", xlab = xaxisname, ylab = "Plants (no.)")
 }
-  if(type == "plot"){plot(pheno[,ToPlot]~pheno[,ByPlot], main = title)}
+  if(type == "plot"){plot(pheno[,ToPlot]~pheno[,ByPlot], main = "")}
   dev.off()
 }
 
-plotData("PercentInfectedAllRounds","hist","Number of Lines by Percent Symptom")
+plotData("PercentInfectedAllRounds","hist","Number of Lines by Percent Symptom", "Symptomatic plants (%)")
 plotData("SusceptibilityRating05","hist","Susceptibility Ranking 0-5 Frequency")
 plotData("SusceptibilityRating03","hist","Susceptibility Ranked 0-3 Frequency")
 plotData("SusceptibilityRating02","hist","Susceptibility Ranked 0-2 Frequency")
-plotData("StandCountCleaned","hist","Frequency of Stand Count")
+plotData("StandCountCleaned","hist","Frequency of Stand Count", "Stand count" )
 # plotData("PercentInfectedAllRounds","plot","Percent Symptom by Infection","PotLabel")
 
 
@@ -225,20 +230,28 @@ SCMVPanel_n_withoutScm1 <- data.frame(SCMVPanel_nwithpos[,..withoutSCMV1pos])
 length(withSCMV1pos)
 length(withoutSCMV1pos)
 
-
+phenoWOHap <- pheno[match(pheno$Line, withoutSCMV1names),]
+length(which(phenoWOHap$PercentInfectedAllRounds ==0))
 #add whether they have SCMV1 to phenotypic dataframe
-pheno$SCMV1 = FALSE
+pheno$SCMV1 = NA
+pheno$SCMV1[pheno$GenoName %in% c(withoutSCMV1names)]=FALSE
 pheno$SCMV1[pheno$GenoName %in% c(withSCMV1names)]=TRUE
 
-png("Figures/Plot_Pheno_PercentInfected_withSCM1.png")
-hist(pheno$PercentInfectedAllRounds[which(pheno$SCMV1)],ylim = c(0,25),main = "Percent Symptomatic of lines with Scm1 Haplotype",ylab = "Number",xlab = "Percent Plants Sympotmatic")
-dev.off()
-png("Figures/Plot_Pheno_PercentInfected_withoutSCM1.png")
-hist(pheno$PercentInfectedAllRounds[which(!pheno$SCMV1)],ylim = c(0,250),main = "Percent Symptomatic of lines without Scm1 Haplotype",ylab = "Number",xlab = "Percent Plants Sympotmatic")
+WithMainTitle <- expression(paste("Percent Symptomatic of lines with ", italic("Scm1"), " Haplotype"))
+png("Figures/Plot_Pheno_PercentInfected_withSCM1.png",width = 750, height = 750)
+# hist(pheno$PercentInfectedAllRounds[which(pheno$SCMV1)],ylim = c(0,25),main = WithMainTitle,ylab = "Number",xlab = "Percent Plants Sympotmatic")
+hist(pheno$PercentInfectedAllRounds[which(pheno$SCMV1)],ylim = c(0,25),main = "",xlab = "Symptomatic plants (%)", ylab = "Plants (no.)")
 dev.off()
 
-GWASPolyRunner(paste("WithScm1_",length(withSCMV1pos),"lines_PC3_Functioned",sep = ""), "PercentInfectedAllRounds", SCMVPanel_n_withScm1,filename,adendum,phenoSubsetGeno)
-GWASPolyRunner(paste("WithoutScm1_",length(withoutSCMV1pos),"lines_PC3_Functioned",sep = ""), "PercentInfectedAllRounds", SCMVPanel_n_withoutScm1,filename,adendum,phenoSubsetGeno)
+WithoutMainTitle <- expression(paste("Percent Symptomatic of lines without ", italic("Scm1"), " Haplotype"))
+png("Figures/Plot_Pheno_PercentInfected_withoutSCM1.png",width = 750, height = 750)
+# hist(pheno$PercentInfectedAllRounds[which(!pheno$SCMV1)],ylim = c(0,250),main = WithoutMainTitle,ylab = "Number",xlab = "Percent Plants Sympotmatic")
+hist(pheno$PercentInfectedAllRounds[which(!pheno$SCMV1)],ylim = c(0,250), main = "", xlab = "Symptomatic plants (%)", ylab = "Plants (no.)")
+dev.off()
+RunName1 <- paste0(Sys.Date(),"_WithScm1_",length(withSCMV1pos),"lines_PC3_Functioned")
+RunName2 <- paste0(Sys.Date(),"_WithoutScm1_",length(withoutSCMV1pos),"lines_PC3_Functioned")
+GWASPolyRunner(RunName1, "PercentInfectedAllRounds", SCMVPanel_n_withScm1,filename,adendum,phenoSubsetGeno)
+GWASPolyRunner(RunName2, "PercentInfectedAllRounds", SCMVPanel_n_withoutScm1,filename,adendum,phenoSubsetGeno)
 
 #is the percent infected significantly different among those with SCMV and those without?
 t.test(pheno$PercentInfectedAllRounds~pheno$SCMV1)
@@ -248,6 +261,12 @@ length(intersect(which(pheno$PercentInfectedAllRounds == "0"), which(pheno$SCMV1
 resistantlineswithscm1 <- pheno$Line[intersect(which(pheno$PercentInfectedAllRounds == "0"), which(pheno$SCMV1))]
 resistantlineswithscm1
 
+pheno$GenoInfo <- FALSE
+pheno$GenoInfo[which(pheno$GenoName != "")] <- TRUE
+
+
+write.table(pheno,"WSMDP_SCMV_Phenotype_WSCMV1HaplotypeInfo.csv", append = FALSE, sep = ",", dec = ".",
+            row.names = FALSE, col.names = TRUE)
 
 # #########################
 # ### GWASPoly, Full Group, No removes ###
@@ -659,9 +678,10 @@ resistantlineswithscm1
 #Import the name of the file. This matrix was calculated on Tassel using the Linkage Disequilibrium tool and the output was saved as a text file
   #since the resulting text file was 8GB, it was pruned using AWK on linux to only include the columns for distance and r2
 # LDMatrixfileName <- "WiDivMerged+all_sweet_v120160307_rawcalls_min526_maf0025_maxhet001_mincall040_LD_FullMatrix_r2_distonly"
-LDMatrixfileName <- "WiDivMerged+all_sweet_v120160307_rawcalls_min526_maf0025_LD_FullMatrix_locidistr2only"
+# LDMatrixfileName <- "WiDivMerged+all_sweet_v120160307_rawcalls_min526_maf0025_LD_FullMatrix_locidistr2only"
+# fullpath <- paste("Data/",LDMatrixfileName,".txt",sep = "")
+LDMatrixfileName <- "WSMDP_SCMV_SeqB_420Taxa_LDFullMatrix_locidistr2only"
 fullpath <- paste("Data/",LDMatrixfileName,".txt",sep = "")
-
 #Read in the .txt LD matric file
 readin <- fread(fullpath, sep=' ')
 
