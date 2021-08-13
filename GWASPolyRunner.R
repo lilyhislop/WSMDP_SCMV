@@ -14,8 +14,8 @@ data <- read.GWASpoly(ploidy=2,
                       n.traits=4,
                       delim=",")
 
-data2 <- set.K(data)
-params <- set.params(fixed=NULL, fixed.type=NULL,n.PC = 3, MAF = 0.025) #no fixed effects, MAF should do nothing as it's already been filtered
+data2 <- set.K(data, LOCO = FALSE)
+params <- set.params(fixed=NULL, fixed.type=NULL,n.PC = 3, MAF = 0.05) #no fixed effects, MAF should do nothing as it's already been filtered
 
 data3 <- GWASpoly(data2,models=c("additive","general"),traits=trait, params=params)
 
